@@ -15,27 +15,27 @@ def get_args():
     parser.add_argument(
         '--schedule-type',
         dest='schedule_type',
-        default=None,
+        default='',
         choices={
-            None,
+            '',
             'manual',
             'auto'},
         required=False)
     parser.add_argument(
         '--paused',
         dest='paused',
-        default=None,
+        default='',
         choices={
-            None,
+            '',
             'TRUE',
             'FALSE'},
         required=False)
     parser.add_argument(
         '--historical-sync',
         dest='historical_sync',
-        default=None,
+        default='',
         choices={
-            None,
+            '',
             'TRUE'},
         required=False)
 
