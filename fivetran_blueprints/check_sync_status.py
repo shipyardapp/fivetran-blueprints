@@ -51,8 +51,18 @@ def determine_sync_status(connector_details_response, execution_time):
     last_success = connector_details_response['data']['succeeded_at']
     last_failure = connector_details_response['data']['failed_at']
 
-    last_success = parser.parse(last_success)
-    last_failure = parser.parse(last_failure)
+    # Handling for when results come back as null.
+    if last_success:
+        last_success = parser.parse(last_success)
+    else:
+        last_success = datetime.datetime.now(
+            pytz.utc) - datetime.timedelta(days=1)
+
+    if last_failure:
+        last_failure = parser.parse(last_failure)
+    else:
+        last_failure = datetime.datetime.now(
+            pytz.utc) - datetime.timedelta(days=1)
 
     if (last_success > execution_time) or (last_failure > execution_time):
         if last_failure > execution_time:
