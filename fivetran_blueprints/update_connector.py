@@ -15,27 +15,27 @@ def get_args():
     parser.add_argument(
         '--schedule-type',
         dest='schedule_type',
-        default='',
+        default='None',
         choices={
-            '',
+            'None',
             'manual',
             'auto'},
         required=False)
     parser.add_argument(
         '--paused',
         dest='paused',
-        default='',
+        default='None',
         choices={
-            '',
+            'None',
             'TRUE',
             'FALSE'},
         required=False)
     parser.add_argument(
         '--historical-sync',
         dest='historical_sync',
-        default='',
+        default='None',
         choices={
-            '',
+            'None',
             'TRUE'},
         required=False)
 
@@ -90,15 +90,15 @@ def main():
                'Content-Type': 'application/json'}
 
     fields_to_update = {}
-    if args.schedule_type:
+    if args.schedule_type not in ('None', '', None):
         schedule_type = args.schedule_type
         fields_to_update['schedule_type'] = schedule_type
 
-    if args.paused:
+    if args.paused not in ('None', '', None):
         paused = execute_request.convert_to_boolean(args.paused)
         fields_to_update['paused'] = paused
 
-    if args.historical_sync:
+    if args.historical_sync not in ('None', '', None):
         historical_sync = execute_request.convert_to_boolean(
             args.historical_sync)
         fields_to_update['is_historical_sync'] = historical_sync
