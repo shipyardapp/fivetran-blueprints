@@ -92,7 +92,6 @@ def main():
     with open(pickle_file_name, 'wb') as f:
         pickle.dump([connector_id, execution_time], f)
 
-    print(f'{sync_connector_response["message"]}')
     sync_status = sync_connector_response['code']
     if sync_status == 'Success':
         if check_status:
@@ -115,6 +114,7 @@ def main():
         else:
             sys.exit(0)
     else:
+        print(f'{sync_connector_response["message"]}')
         sys.exit(1)
 
 

@@ -56,16 +56,30 @@ def determine_sync_status(connector_details_response, execution_time):
         last_success = parser.parse(last_success)
     else:
         last_success = datetime.datetime.now(
-            pytz.utc) - datetime.timedelta(days=1)
+            pytz.utc) - datetime.timedelta(days=10000)
 
     if last_failure:
         last_failure = parser.parse(last_failure)
     else:
         last_failure = datetime.datetime.now(
-            pytz.utc) - datetime.timedelta(days=1)
+            pytz.utc) - datetime.timedelta(days=10000)
 
-    if (last_success > execution_time) or (last_failure > execution_time):
-        if last_failure > execution_time:
+    if execution_time:
+        if (last_success > execution_time) or (last_failure > execution_time):
+            if last_failure > execution_time:
+                print(
+                    f'Fivetran reports that the connector {connector_id} recently errored at {last_failure}.')
+                exit_code = 1
+            else:
+                print(
+                    f'Fivetran reports that connector {connector_id} was recently successful at {last_success}.')
+                exit_code = 0
+        else:
+            print(
+                f'Fivetran reports that the connector {connector_id} has not yet completed since the last execution time of {execution_time}')
+            exit_code = 255
+    else:
+        if last_failure > last_success:
             print(
                 f'Fivetran reports that the connector {connector_id} recently errored at {last_failure}.')
             exit_code = 1
@@ -73,10 +87,7 @@ def determine_sync_status(connector_details_response, execution_time):
             print(
                 f'Fivetran reports that connector {connector_id} was recently successful at {last_success}.')
             exit_code = 0
-    else:
-        print(
-            f'Fivetran reports that the connector {connector_id} has not yet completed since the last execution time of {execution_time}')
-        exit_code = 255
+
     return exit_code
 
 
@@ -118,7 +129,6 @@ def main():
     execution_time = None
     if args.connector_id:
         connector_id = args.connector_id
-        execution_time = datetime.datetime.now(pytz.utc)
     elif shipyard_upstream_vessels:
         shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
         for vessel_id in shipyard_upstream_vessels:
@@ -143,8 +153,12 @@ def main():
         folder_name=f'{base_folder_name}/responses',
         file_name=f'connector_{connector_id}_response.json')
 
-    sys.exit(determine_sync_status(
-        connector_details_response, execution_time))
+    if connector_details_response['code'] == 'Success':
+        sys.exit(determine_sync_status(
+            connector_details_response, execution_time))
+    else:
+        print(connector_details_response['message'])
+        sys.exit(1)
 
 
 if __name__ == '__main__':
