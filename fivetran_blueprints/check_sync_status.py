@@ -12,8 +12,8 @@ import datetime
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--username', dest='username', required=True)
-    parser.add_argument('--password', dest='password', required=True)
+    parser.add_argument('--api-key', dest='api_key', required=True)
+    parser.add_argument('--api-secret', dest='api_secret', required=True)
     parser.add_argument('--connector-id', dest='connector_id', required=False)
     args = parser.parse_args()
     return args
@@ -98,9 +98,9 @@ def load_pickle_variables(full_pickle_path):
 
 def main():
     args = get_args()
-    username = args.username
-    password = args.password
-    auth_header = requests.auth._basic_auth_str(username, password)
+    api_key = args.api_key
+    api_secret = args.api_secret
+    auth_header = requests.auth._basic_auth_str(api_key, api_secret)
     headers = {'Authorization': auth_header}
 
     shipyard_upstream_vessels = os.environ.get(

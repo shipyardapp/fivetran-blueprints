@@ -18,8 +18,8 @@ except BaseException:
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--username', dest='username', required=True)
-    parser.add_argument('--password', dest='password', required=True)
+    parser.add_argument('--api-key', dest='api_key', required=True)
+    parser.add_argument('--api-secret', dest='api_secret', required=True)
     parser.add_argument('--connector-id', dest='connector_id', required=True)
     parser.add_argument(
         '--check-status',
@@ -66,10 +66,10 @@ def execute_sync(
 def main():
     args = get_args()
     connector_id = args.connector_id
-    username = args.username
-    password = args.password
+    api_key = args.api_key
+    api_secret = args.api_secret
     check_status = execute_request.convert_to_boolean(args.check_status)
-    auth_header = requests.auth._basic_auth_str(username, password)
+    auth_header = requests.auth._basic_auth_str(api_key, api_secret)
     headers = {'Authorization': auth_header}
     shipyard_log_id = os.environ.get("SHIPYARD_LOG_ID")
 
