@@ -38,6 +38,11 @@ def get_args():
             'None',
             'TRUE'},
         required=False)
+    parser.add_argument(
+        '--custom-update',
+        dest='custom_update',
+        default='None',
+        required=False)
 
     # All possible options are available here
     # https://fivetran.com/docs/rest-api/connectors#modifyaconnector
@@ -102,6 +107,11 @@ def main():
         historical_sync = execute_request.convert_to_boolean(
             args.historical_sync)
         fields_to_update['is_historical_sync'] = historical_sync
+
+    if args.custom_update not in ('None', '', None):
+        custom_update = json.loads(args.custom_update)
+        for key, value in custom_update.items():
+            fields_to_update[key] = value
 
     message = json.dumps(fields_to_update)
 
