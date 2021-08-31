@@ -112,6 +112,7 @@ def main():
                     is_complete = True
             sys.exit(exit_code)
         else:
+            print(f'{sync_connector_response["message"]}')
             sys.exit(0)
     else:
         print(f'{sync_connector_response["message"]}')
