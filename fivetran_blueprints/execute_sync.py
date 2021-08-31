@@ -106,7 +106,7 @@ def main():
                     connector_details_response, execution_time)
                 if exit_code == 255:
                     print(
-                        f'{connector_id} has not finished connectorning recently. Waiting 30 seconds and trying again.')
+                        f'{connector_id} has not finished syncing recently. Waiting 30 seconds and trying again.')
                     time.sleep(30)
                 else:
                     is_complete = True
