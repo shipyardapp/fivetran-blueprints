@@ -127,9 +127,8 @@ def main():
 
     connector_id = None
     execution_time = None
-    if args.connector_id:
-        connector_id = args.connector_id
-    elif shipyard_upstream_vessels:
+    ## check to see if the connector id is available in upstream vessels
+    if shipyard_upstream_vessels:
         shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
         for vessel_id in shipyard_upstream_vessels:
             full_pickle_path = working_pickle_file(
@@ -138,14 +137,32 @@ def main():
             if full_pickle_path:
                 connector_id, execution_time = load_pickle_variables(
                     full_pickle_path)
-
+    elif args.connector_id:
+        connector_id = args.connector_id
+    
     if not connector_id and not execution_time:
-        full_pickle_path = working_pickle_file(
-            pickle_folder_name,
-            f'force_sync.pickle')
+        full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
         if full_pickle_path:
-            connector_id, execution_time = load_pickle_variables(
-                full_pickle_path)
+            connector_id, execution_time = load_pickle_variables(full_pickle_path)
+    # if args.connector_id:
+    #     connector_id = args.connector_id
+    # elif shipyard_upstream_vessels:
+    #     shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
+    #     for vessel_id in shipyard_upstream_vessels:
+    #         full_pickle_path = working_pickle_file(
+    #             pickle_folder_name,
+    #             f'{vessel_id}_force_sync.pickle')
+    #         if full_pickle_path:
+    #             connector_id, execution_time = load_pickle_variables(
+    #                 full_pickle_path)
+
+    # if not connector_id and not execution_time:
+    #     full_pickle_path = working_pickle_file(
+    #         pickle_folder_name,
+    #         f'force_sync.pickle')
+    #     if full_pickle_path:
+    #         connector_id, execution_time = load_pickle_variables(
+    #             full_pickle_path)
 
     connector_details_response = get_connector_details(
         connector_id,
