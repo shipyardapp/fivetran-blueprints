@@ -1,3 +1,4 @@
+from genericpath import isfile
 from httprequest_blueprints import execute_request
 import argparse
 import os
@@ -144,12 +145,13 @@ def main():
     ## if just the connector is provided
     elif connector_id:
         full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
-        temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
-        if temp_con_id == connector_id:
-            execution_time = temp_execution_time
+        if os.path.isfile(full_pickle_path):
+            temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
+            if temp_con_id == connector_id:
+                execution_time = temp_execution_time
 
     ## if the connetor id is not provided
-    else:
+    elif not connector_id and not execution_time:
         full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
         if full_pickle_path:
             connector_id, execution_time = load_pickle_variables(full_pickle_path)
