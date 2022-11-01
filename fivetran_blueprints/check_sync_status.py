@@ -125,24 +125,51 @@ def main():
         f'{base_folder_name}/variables')
     execute_request.create_folder_if_dne(pickle_folder_name)
 
-    connector_id = None
+    # connector_id = None
+    connector_id = args.connector_id
     execution_time = None
-    if shipyard_upstream_vessels:
+    ## if there are upstream vessels
+    ## if the connector id is not provided then we don't care about the other 
+    if shipyard_upstream_vessels and connector_id:
         shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
         for vessel_id in shipyard_upstream_vessels:
             full_pickle_path = working_pickle_file(
                 pickle_folder_name,
                 f'{vessel_id}_force_sync.pickle')
             if full_pickle_path:
-                connector_id, execution_time = load_pickle_variables(
-                    full_pickle_path)
-    elif args.connector_id:
-        connector_id = args.connector_id
-    
-    if not connector_id and not execution_time:
+                ## grab variables from the pickle file only if the connector id from the pickle matches the one provided
+                temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
+                if temp_con_id == connector_id:
+                    execution_time = temp_execution_time
+                # else:
+                #     connector_id, execution_time = load_pickle_variables(
+                #         full_pickle_path)
+    # if args.connector_id:
+    #     connector_id = args.connector_id
+    elif connector_id:
+        full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
+        temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
+        if temp_con_id == connector_id:
+            execution_time = temp_execution_time
+
+    else:
         full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
         if full_pickle_path:
             connector_id, execution_time = load_pickle_variables(full_pickle_path)
+
+
+    # if shipyard_upstream_vessels:
+    #     shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
+    #     for vessel_id in shipyard_upstream_vessels:
+    #         full_pickle_path = working_pickle_file(
+    #             pickle_folder_name,
+    #             f'{vessel_id}_force_sync.pickle')
+    #         if full_pickle_path:
+    #             connector_id, execution_time = load_pickle_variables(
+    #                 full_pickle_path)
+    # elif args.connector_id:
+    #     connector_id = args.connector_id
+    
 
     connector_details_response = get_connector_details(
         connector_id,
@@ -156,6 +183,7 @@ def main():
     else:
         print(connector_details_response['message'])
         sys.exit(1)
+
 
 
 if __name__ == '__main__':
