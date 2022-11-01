@@ -145,6 +145,7 @@ def main():
                         execution_time = temp_execution_time
                 else:
                     connector_id = temp_con_id 
+                    execution_time = temp_execution_time
     ## if just the connector is provided
     elif connector_id:
         full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
