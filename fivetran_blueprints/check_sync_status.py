@@ -131,7 +131,7 @@ def main():
     execution_time = None
     ## if there are upstream vessels
     ## if the connector id is not provided then we don't care about the other 
-    if shipyard_upstream_vessels and connector_id:
+    if shipyard_upstream_vessels:
         shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
         for vessel_id in shipyard_upstream_vessels:
             full_pickle_path = working_pickle_file(
@@ -140,8 +140,11 @@ def main():
             if full_pickle_path:
                 ## grab variables from the pickle file only if the connector id from the pickle matches the one provided
                 temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
-                if temp_con_id == connector_id:
-                    execution_time = temp_execution_time
+                if connector_id:
+                    if temp_con_id == connector_id:
+                        execution_time = temp_execution_time
+                else:
+                    connector_id = temp_con_id 
     ## if just the connector is provided
     elif connector_id:
         full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
