@@ -131,3 +131,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# local testing
+.vscode
+*.sh
+
+wespoulsen-artifacts

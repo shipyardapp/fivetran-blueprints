@@ -1,3 +1,4 @@
+from genericpath import isfile
 from httprequest_blueprints import execute_request
 import argparse
 import os
@@ -125,27 +126,39 @@ def main():
         f'{base_folder_name}/variables')
     execute_request.create_folder_if_dne(pickle_folder_name)
 
-    connector_id = None
+    # connector_id = None
+    connector_id = args.connector_id
     execution_time = None
-    if args.connector_id:
-        connector_id = args.connector_id
-    elif shipyard_upstream_vessels:
+    ## if there are upstream vessels
+    ## if the connector id is not provided then we don't care about the other 
+    if shipyard_upstream_vessels:
         shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
         for vessel_id in shipyard_upstream_vessels:
             full_pickle_path = working_pickle_file(
                 pickle_folder_name,
                 f'{vessel_id}_force_sync.pickle')
             if full_pickle_path:
-                connector_id, execution_time = load_pickle_variables(
-                    full_pickle_path)
-
-    if not connector_id and not execution_time:
-        full_pickle_path = working_pickle_file(
-            pickle_folder_name,
-            f'force_sync.pickle')
+                ## grab variables from the pickle file only if the connector id from the pickle matches the one provided
+                temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
+                if connector_id:
+                    if temp_con_id == connector_id:
+                        execution_time = temp_execution_time
+                else:
+                    connector_id = temp_con_id 
+                    execution_time = temp_execution_time
+    ## if just the connector is provided
+    elif connector_id:
+        full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
         if full_pickle_path:
-            connector_id, execution_time = load_pickle_variables(
-                full_pickle_path)
+            temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
+            if temp_con_id == connector_id:
+                execution_time = temp_execution_time
+
+    ## if the connetor id is not provided
+    elif not connector_id and not execution_time:
+        full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
+        if full_pickle_path:
+            connector_id, execution_time = load_pickle_variables(full_pickle_path)
 
     connector_details_response = get_connector_details(
         connector_id,
@@ -159,6 +172,7 @@ def main():
     else:
         print(connector_details_response['message'])
         sys.exit(1)
+
 
 
 if __name__ == '__main__':
