@@ -1,14 +1,12 @@
-from genericpath import isfile
 from httprequest_blueprints import execute_request
 import argparse
-import os
 import json
 import sys
-import pickle
 import requests.auth
 from dateutil import parser
 import pytz
 import datetime
+import shipyard_utils
 
 
 def get_args():
@@ -16,8 +14,7 @@ def get_args():
     parser.add_argument('--api-key', dest='api_key', required=True)
     parser.add_argument('--api-secret', dest='api_secret', required=True)
     parser.add_argument('--connector-id', dest='connector_id', required=False)
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def write_json_to_file(json_object, file_name):
@@ -92,21 +89,6 @@ def determine_sync_status(connector_details_response, execution_time):
     return exit_code
 
 
-def working_pickle_file(pickle_folder_name, pickle_file_name):
-    full_pickle_path = execute_request.combine_folder_and_file_name(
-        pickle_folder_name, pickle_file_name)
-    if os.path.exists(full_pickle_path):
-        return full_pickle_path
-    else:
-        return None
-
-
-def load_pickle_variables(full_pickle_path):
-    with open(full_pickle_path, 'rb') as f:
-        connector_id, execution_time = pickle.load(f)
-
-    return connector_id, execution_time
-
 
 def main():
     args = get_args()
@@ -114,51 +96,22 @@ def main():
     api_secret = args.api_secret
     auth_header = requests.auth._basic_auth_str(api_key, api_secret)
     headers = {'Authorization': auth_header}
-
-    shipyard_upstream_vessels = os.environ.get(
-        "SHIPYARD_FLEET_UPSTREAM_LOG_IDS")
-
-    artifact_directory_default = f'{os.environ.get("USER")}-artifacts'
-    base_folder_name = execute_request.clean_folder_name(
-        f'{os.environ.get("SHIPYARD_ARTIFACTS_DIRECTORY",artifact_directory_default)}/fivetran-blueprints/')
-
-    pickle_folder_name = execute_request.clean_folder_name(
-        f'{base_folder_name}/variables')
-    execute_request.create_folder_if_dne(pickle_folder_name)
-
-    # connector_id = None
-    connector_id = args.connector_id
     execution_time = None
-    ## if there are upstream vessels
-    ## if the connector id is not provided then we don't care about the other 
-    if shipyard_upstream_vessels:
-        shipyard_upstream_vessels = shipyard_upstream_vessels.split(',')
-        for vessel_id in shipyard_upstream_vessels:
-            full_pickle_path = working_pickle_file(
-                pickle_folder_name,
-                f'{vessel_id}_force_sync.pickle')
-            if full_pickle_path:
-                ## grab variables from the pickle file only if the connector id from the pickle matches the one provided
-                temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
-                if connector_id:
-                    if temp_con_id == connector_id:
-                        execution_time = temp_execution_time
-                else:
-                    connector_id = temp_con_id 
-                    execution_time = temp_execution_time
-    ## if just the connector is provided
-    elif connector_id:
-        full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
-        if full_pickle_path:
-            temp_con_id, temp_execution_time = load_pickle_variables(full_pickle_path)
-            if temp_con_id == connector_id:
-                execution_time = temp_execution_time
 
-    ## if the connetor id is not provided
-    elif not connector_id and not execution_time:
-        full_pickle_path = working_pickle_file(pickle_folder_name,f'force_sync.pickle')
-        if full_pickle_path:
-            connector_id, execution_time = load_pickle_variables(full_pickle_path)
+    base_folder_name = shipyard_utils.logs.determine_base_artifact_folder(
+        'fivetran')
+    artifact_subfolder_paths = shipyard_utils.logs.determine_artifact_subfolders(
+        base_folder_name)
+    shipyard_utils.logs.create_artifacts_folders(artifact_subfolder_paths)
+    
+    
+    if args.connector_id and args.connector_id !='':
+        connector_id = args.connector_id
+    else:
+        connector_id = shipyard_utils.logs.read_pickle_file(
+                artifact_subfolder_paths, 'connector_id')
+        execution_time= shipyard_utils.logs.read_pickle_file(
+                artifact_subfolder_paths, 'execution_time')
 
     connector_details_response = get_connector_details(
         connector_id,
@@ -167,6 +120,7 @@ def main():
         file_name=f'connector_{connector_id}_response.json')
 
     if connector_details_response['code'] == 'Success':
+
         sys.exit(determine_sync_status(
             connector_details_response, execution_time))
     else:
