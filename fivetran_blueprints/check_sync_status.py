@@ -108,7 +108,9 @@ def main():
         execution_time = shipyard_utils.logs.read_pickle_file(
             artifact_subfolder_paths, 'execution_time')
     except Exception as error:
-        print(f'Error reading upstream logs: {error}')
+        print(f"Oops! There's a problem reading the upstream logs."
+              f"Before running this blueprint, you be sure to use the Fivetran - Execute Sync blueprint first."
+              f"\n Error Details: {error}")
         sys.exit(1)
     if args.connector_id and args.connector_id != '' and connector_id != args.connector_id:
         print(f'Connector ID {args.connector_id} does not match the connector ID {connector_id} stored in the logs.'
