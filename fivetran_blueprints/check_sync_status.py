@@ -89,29 +89,30 @@ def determine_sync_status(connector_details_response, execution_time):
     return exit_code
 
 
-
 def main():
     args = get_args()
     api_key = args.api_key
     api_secret = args.api_secret
     auth_header = requests.auth._basic_auth_str(api_key, api_secret)
     headers = {'Authorization': auth_header}
-    execution_time = None
 
     base_folder_name = shipyard_utils.logs.determine_base_artifact_folder(
         'fivetran')
     artifact_subfolder_paths = shipyard_utils.logs.determine_artifact_subfolders(
         base_folder_name)
     shipyard_utils.logs.create_artifacts_folders(artifact_subfolder_paths)
-    
-    
-    if args.connector_id and args.connector_id !='':
-        connector_id = args.connector_id
-    else:
+
+    try:
         connector_id = shipyard_utils.logs.read_pickle_file(
-                artifact_subfolder_paths, 'connector_id')
-        execution_time= shipyard_utils.logs.read_pickle_file(
-                artifact_subfolder_paths, 'execution_time')
+            artifact_subfolder_paths, 'connector_id')
+        execution_time = shipyard_utils.logs.read_pickle_file(
+            artifact_subfolder_paths, 'execution_time')
+    except Exception as error:
+        print(f'Error reading upstream logs: {error}')
+        sys.exit(1)
+    if args.connector_id and args.connector_id != '' and connector_id != args.connector_id:
+        print(f'Connector ID {args.connector_id} does not match the connector ID {connector_id} stored in the logs.'
+              f'Continuing with the connector ID detected upstream {connector_id}')
 
     connector_details_response = get_connector_details(
         connector_id,
@@ -120,13 +121,11 @@ def main():
         file_name=f'connector_{connector_id}_response.json')
 
     if connector_details_response['code'] == 'Success':
-
         sys.exit(determine_sync_status(
             connector_details_response, execution_time))
     else:
         print(connector_details_response['message'])
         sys.exit(1)
-
 
 
 if __name__ == '__main__':
